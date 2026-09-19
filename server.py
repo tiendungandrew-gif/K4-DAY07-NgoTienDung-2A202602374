@@ -255,10 +255,10 @@ class BrightPathHandler(http.server.SimpleHTTPRequestHandler):
         })
 
     def handle_compare_chunking(self, payload: Dict[str, Any]):
-        doc_name = payload.get("doc_name", "doc_4.md")
+        doc_name = payload.get("doc_name", "quy-dinh-daotao-tien-tien-aep.md")
         doc_path = DATA_DIR / doc_name
         if not doc_path.exists():
-            doc_path = DATA_DIR / "doc_1.md"
+            doc_path = DATA_DIR / "quy-che-daotao-2024-qd368.md"
         
         raw = doc_path.read_text(encoding="utf-8")
         content = raw.split("---", 2)[2].strip() if raw.startswith("---") and len(raw.split("---", 2)) >= 3 else raw
