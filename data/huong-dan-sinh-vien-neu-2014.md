@@ -1,5 +1,5 @@
 ---
-doc_id: doc_6
+doc_id: huong-dan-sinh-vien-neu-2014
 title: Những điều sinh viên ĐH KTQD cần biết (2014)
 source_url: https://www.neu.edu.vn/Upload_Files_WEB/Files/ThongBao/T10_2014/Nhung%20dieu%20SV%20DH%20KTQD%20can%20biet%20(2014).pdf
 retrieved_at: 2024-11-20

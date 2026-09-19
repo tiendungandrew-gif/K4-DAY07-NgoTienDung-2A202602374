@@ -1,5 +1,5 @@
 ---
-doc_id: doc_5
+doc_id: quy-dinh-daotao-chat-luong-cao
 title: Quy định đào tạo chất lượng cao
 source_url: https://aep.neu.edu.vn/wp-content/uploads/2022/07/Quy-dinh-dao-tao-Chat-luong-cao.pdf
 retrieved_at: 2024-11-20

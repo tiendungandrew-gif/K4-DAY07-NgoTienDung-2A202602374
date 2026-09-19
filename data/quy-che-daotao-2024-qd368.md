@@ -1,5 +1,5 @@
 ---
-doc_id: doc_1
+doc_id: quy-che-daotao-2024-qd368
 title: Quy chế đào tạo đại học 2024 (QĐ 368)
 source_url: https://daotao.neu.edu.vn/Resources/Docs/SubDomain/daotao/NewFolder/Q%C4%90%20368_QUY%20CH%E1%BA%BE%20%C4%90%C3%80O%20T%E1%BA%A0O%20%C4%90%E1%BA%A0I%20H%E1%BB%8CC%202024-news.pdf
 retrieved_at: 2024-11-20

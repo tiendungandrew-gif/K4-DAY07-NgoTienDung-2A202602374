@@ -1,5 +1,5 @@
 ---
-doc_id: doc_7
+doc_id: quy-dinh-daotao-tinchi-mfe
 title: Bộ quy định đào tạo tín chỉ ĐHKTQD (MFE)
 source_url: https://mfe.neu.edu.vn/bo-quy-dinh-dao-tao-tin-chi-dhktqd-2/
 retrieved_at: 2024-11-20

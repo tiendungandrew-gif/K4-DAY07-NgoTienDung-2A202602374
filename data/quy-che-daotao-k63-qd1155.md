@@ -1,5 +1,5 @@
 ---
-doc_id: doc_2
+doc_id: quy-che-daotao-k63-qd1155
 title: Quy chế đào tạo đại học K63 trở đi (QĐ 1155)
 source_url: https://daotao.neu.edu.vn/Resources/Docs/SubDomain/daotao/Xulyhocvu/1155_Quyche-Daotao-Daihoc-K63%20tr%E1%BB%9F%20%C4%91i.pdf
 retrieved_at: 2024-11-20

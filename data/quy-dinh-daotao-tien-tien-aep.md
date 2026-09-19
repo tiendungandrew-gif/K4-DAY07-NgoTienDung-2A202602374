@@ -1,5 +1,5 @@
 ---
-doc_id: doc_4
+doc_id: quy-dinh-daotao-tien-tien-aep
 title: Quy định đào tạo theo chương trình tiên tiến
 source_url: https://aep.neu.edu.vn/wp-content/uploads/2022/07/Quy-dinh-ve-dao-tao-theo-chuong-trinh-tien-tien.pdf
 retrieved_at: 2024-11-20
