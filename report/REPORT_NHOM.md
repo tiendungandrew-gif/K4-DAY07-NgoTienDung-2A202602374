@@ -106,13 +106,13 @@ class RecursiveSectionChunker:
 | Trần Anh Quân | FixedSizeChunker (300/30) | 6 / 10 | Kích thước nhỏ, tập trung | Dễ làm mất ngữ cảnh của các điều khoản dài và bảng điểm |
 
 **Chiến lược nào tốt nhất cho chủ đề này? Tại sao?**
-> **RecursiveChunker (kết hợp tiêu đề Mục/Điều)** là chiến lược tốt nhất cho chủ đề Quy chế & Dịch vụ Đại học. Do đặc thù tài liệu học vụ chứa nhiều bảng điểm, điều kiện tốt nghiệp và quy trình nhiều bước, việc phân tách theo ranh giới cấu trúc văn bản (`\n\n`, `### Điều`) đảm bảo mỗi chunk là một quy định hoàn chỉnh, giúp mô hình Vector Store và RAG Agent truy xuất chính xác 100% ngữ cảnh mà không bị cụt ý.
+> **RecursiveChunker (kết hợp tiêu đề Mục/Điều)** là chiến lược tốt nhất cho chủ đề Quy chế & Dịch vụ Đại học. Do đặc thù tài liệu học vụ chứa nhiều bảng điểm, điều kiện tốt nghiệp và quy trình nhiều bước, việc phân tách theo ranh giới cấu trúc văn bản (`\n\n`, `### Điều`) đảm bảo mỗi chunk là một quy định hoàn chỉnh, giúp mô hình Vector Store và RAG Agent truy xuất chính xác ngữ cảnh mà không bị cụt ý.
 
 ### Phân tích trường hợp thất bại (Failure Case Analysis) — Nhóm
 
-- **Failure Case 1 (Lỗi ranh giới cắt ngữ cảnh - Boundary Chunking Failure):** Với chiến lược `FixedSizeChunker` ở Câu hỏi 3 (Tỷ lệ học phần tương đương), câu văn *"Học phần tương đương phải có nội dung giống ít nhất 80%..."* bị cắt đôi đúng ranh giới: chunk trước chỉ chứa *"Học phần tương đương phải có nội dung giống ít nhất"*, còn phần *"80% và có số tín chỉ tương đương"* rơi sang chunk sau. Kết quả: Agent không tìm thấy con số 80% trong top chunk và trả lời thiếu.
-- **Failure Case 2 (Lỗi thiếu Metadata Filter - Entity Confusion Failure):** Với Câu hỏi 5 (Quy định dừng học CTTT), khi tìm kiếm không dùng `metadata_filter={"audience": "student"}`, hệ thống lấy nhầm quy định chung của Bộ GD&ĐT (`doc_8.md`) thay vì quy chế riêng của Viện AEP (`doc_4.md`), dẫn đến trích dẫn sai thẩm quyền xử lý.
-- **Failure Case 3 (Mock Embedder Semantic Limitation):** Mock embedder dựa trên hash từ vựng đơn thuần nên với các truy vấn dùng từ đồng nghĩa, điểm score bị nhiễu. Cần chuyển sang mô hình Semantic Embedding thật để đạt độ chính xác cao nhất.
+- **Failure Case 1 (Mock Embedder Semantic Limitation — Câu 1):** Với câu hỏi "Trường tổ chức cho sinh viên đăng ký học muộn nhất bao lâu?", Mock Embedder dựa trên hash từ vựng không nắm bắt được ngữ nghĩa "thời hạn đăng ký", dẫn đến top-1 lạc sang Điều 22 về đề thi kết thúc học phần (score 0.374). Agent đã đúng khi từ chối bịa đặt — đây là hành vi "hallucination guard" cần thiết.
+- **Failure Case 2 (Lỗi thiếu Metadata Filter — Câu 3):** Khi tìm kiếm "không đồng ý với điểm thi thì làm gì?" mà không dùng `metadata_filter={"audience": "student"}`, hệ thống dễ lấy nhầm quy định dành cho giảng viên/cán bộ coi thi thay vì quy chế phúc khảo dành cho sinh viên.
+- **Failure Case 3 (Top-1 lạc nhưng Top-2 đúng — Câu 5):** Với câu hỏi "Điều kiện công nhận tốt nghiệp", top-1 trả về Điều 6 về kế hoạch giảng dạy, nhưng top-2 chứa đúng Điều 30 về xét tốt nghiệp. Cho thấy cần tăng `top_k` hoặc cải thiện embedding để nâng vị trí chunk chính xác.
 
 ---
 
@@ -124,11 +124,11 @@ class RecursiveSectionChunker:
 
 | # | Câu hỏi (Query) | Câu trả lời chuẩn (Gold Answer) | Chunk nào chứa thông tin? |
 |---|-----------------|---------------------------------|---------------------------|
-| 1 | Chương trình Tiên tiến tại ĐH Kinh tế Quốc dân đào tạo những chuyên ngành nào? | Chương trình Tiên tiến tại ĐH Kinh tế Quốc dân đào tạo hai chuyên ngành: Tài chính và Kế toán. | `doc_4.md` (Điều 2: Mục tiêu đào tạo của chương trình Tiên tiến) |
-| 2 | Một tín chỉ tại Trường Đại học Kinh tế Quốc dân được quy định bằng bao nhiêu tiết học lý thuyết và bao nhiêu giờ tự học? | Một tín chỉ được quy định bằng 15 tiết học lý thuyết (hoặc 30 - 45 tiết thực hành/thí nghiệm/thảo luận). Sinh viên phải dành ít nhất 30 giờ để chuẩn bị và tự học. | `doc_3.md` (Điều 3: Học phần và tín chỉ, Khoản 4) |
-| 3 | Học phần tương đương được quy định phải có nội dung giống tối thiểu bao nhiêu phần trăm so với học phần xem xét? | Học phần tương đương phải có nội dung giống ít nhất 80% và có số tín chỉ tương đương hoặc lớn hơn so với học phần xem xét. | `doc_3.md` (Điều 3: Học phần và tín chỉ, Khoản 3d) |
-| 4 | Sinh viên chương trình Tiên tiến có điểm thang 10 dưới 4,5 thì xếp điểm chữ gì và quy đổi sang thang điểm 4 là bao nhiêu? | Điểm thang 10 dưới 4,5 thuộc loại không đạt, xếp điểm chữ F và tương ứng thang điểm 4 là 0,0. | `doc_4.md` (Điều 6: Tiêu chí đánh giá kết quả học tập) |
-| 5 | Những trường hợp nào sinh viên không được tiếp tục theo học Chương trình Tiên tiến và phải trở lại ngành cũ? *(Lọc: `audience: student`)* | Sinh viên không được tiếp tục theo học CTTT khi: (1) Không tích lũy đủ học phần Tiếng Anh cần thiết năm 1; (2) Không có nguyện vọng tiếp tục vì lý do cá nhân; (3) Bị kỷ luật từ mức cảnh cáo trở lên. | `doc_4.md` (Điều 8: Chuyển đổi sinh viên giữa các hệ đào tạo) |
+| 1 | Trường tổ chức cho sinh viên đăng ký học muộn nhất bao lâu trước khi bắt đầu học kỳ? | Trước khi bắt đầu học kỳ ít nhất 6 tuần, Trường tổ chức cho sinh viên đăng ký học phần. | `doc_3.md` (Điều 7: Đăng ký học phần, Khoản 1) |
+| 2 | Học cải thiện điểm được tối đa bao nhiêu tín chỉ trong học kỳ 1? | Sinh viên chỉ được học cải thiện điểm không quá 8 tín chỉ đối với học kỳ 1 và học kỳ 3; không quá 5 tín chỉ đối với học kỳ 2. | `doc_4.md` (Điều 11: Đăng ký học phần và học cải thiện) |
+| 3 | Khi không đồng ý với điểm thi thì làm gì? *(Lọc: `audience: student`)* | Sinh viên có thể khiếu nại trực tiếp giảng viên (đối với điểm thành phần) hoặc nộp đơn xin phúc khảo tại Phòng Thanh tra, ĐBCLGD & Khảo thí (đối với điểm thi kết thúc học phần). | `doc_5.md` (Điều 26: Phúc khảo và khiếu nại điểm) |
+| 4 | Sinh viên được tuyển chọn vào chương trình Chất lượng cao như thế nào? | Diện xét tuyển thẳng gồm: thành viên đội tuyển Olympic quốc tế, đạt giải nhất/nhì/ba HSG quốc gia lớp 12, và tuyển theo điểm thi THPT Quốc gia xét theo từng ngành/chuyên ngành. | `doc_5.md` (Điều 11: Tuyển chọn sinh viên vào CLC) |
+| 5 | Điều kiện để được xét công nhận tốt nghiệp gồm những gì? | Sinh viên phải đáp ứng đủ 7 điều kiện a–g theo Điều 30 khoản 1: (a) tích lũy đủ tín chỉ, (b) đạt chuẩn đầu ra ngoại ngữ, (c) GPA đạt yêu cầu, (d) không đang bị kỷ luật, (e) hoàn thành nghĩa vụ tài chính, (f) trả sách thư viện, (g) hoàn thành khảo sát cuối khóa. | `doc_1.md` / `doc_2.md` (Điều 30: Xét và công nhận tốt nghiệp) |
 
 ### Tổng hợp chất lượng truy xuất của nhóm
 
@@ -136,14 +136,14 @@ class RecursiveSectionChunker:
 
 | # | Câu hỏi | Chiến lược tốt nhất cho câu này | Có chunk liên quan trong top-3? | Ghi chú |
 |---|---------|---------------------------------|-------------------------------|---------|
-| 1 | Chương trình Tiên tiến đào tạo chuyên ngành nào? | RecursiveChunker / SectionChunker | Có (Top 1) | Chunk Điều 2 chứa đầy đủ từ khóa và ngữ cảnh |
-| 2 | Quy định số tiết và giờ tự học cho 1 tín chỉ | RecursiveChunker | Có (Top 1) | Đoạn quy đổi tín chỉ được giữ nguyên vẹn |
-| 3 | Tỷ lệ tương đồng của học phần tương đương | FixedSizeChunker (overlap 50) | Có (Top 1) | Tìm kiếm chính xác đoạn định nghĩa 80% |
-| 4 | Thang điểm F và điểm hệ 4 dưới 4,5 | RecursiveChunker | Có (Top 1) | Bảng thang điểm được giữ trọn vẹn |
-| 5 | Các trường hợp sinh viên phải rời CTTT (`audience: student`) | RecursiveChunker + Metadata filter | Có (Top 1) | Lọc `audience: student` loại bỏ quy định chung, tập trung vào doc AEP |
+| 1 | Trường tổ chức đăng ký học muộn nhất bao lâu? | RecursiveChunker — cần Semantic Embedding | ❌ Không (Failure Case) | Mock Embedder hash không bắt được ngữ nghĩa "thời hạn đăng ký", top-1 lạc sang Điều 22 đề thi |
+| 2 | Học cải thiện điểm tối đa bao nhiêu TC học kỳ 1? | RecursiveChunker (Section) | ✅ Có (Top 1) | Chunk Điều 11 chứa nguyên vẹn quy định "không quá 8 tín chỉ" |
+| 3 | Không đồng ý điểm thi → làm gì? (`audience: student`) | RecursiveChunker + Metadata filter | ✅ Có (Top 1) | Lọc `audience: student` giúp tập trung vào quy chế dành cho SV |
+| 4 | Tuyển chọn vào chương trình CLC | RecursiveChunker | ✅ Có (Top 1) | Điều 11 CLC giữ trọn danh sách diện xét tuyển |
+| 5 | Điều kiện công nhận tốt nghiệp | RecursiveChunker | ✅ Có (Top 2) | Top-1 lạc sang Điều 6, nhưng Top-2 chứa Điều 30 công nhận tốt nghiệp |
 
 **Lọc bằng metadata có giúp ích không? Ở câu hỏi nào?**
-> Rất hữu ích, đặc biệt ở Câu hỏi 5. Khi hỏi về quyền lợi/nghĩa vụ hoặc quy định chuyển đổi hệ đào tạo của sinh viên, nếu không lọc `audience: student`, hệ thống dễ lấy nhầm quy định chung của Bộ GD&ĐT (`doc_8.md`) hoặc hướng dẫn cho giảng viên/nhân viên. Nhờ lọc `metadata_filter={"audience": "student"}`, kết quả trả về chính xác ngay văn bản quy định CTTT của Viện AEP (`doc_4.md`).
+> Rất hữu ích, đặc biệt ở Câu hỏi 3. Khi hỏi "không đồng ý với điểm thi thì làm gì?" mà không lọc `audience: student`, hệ thống dễ lấy nhầm quy định dành cho giảng viên/cán bộ coi thi. Nhờ lọc `metadata_filter={"audience": "student"}`, kết quả trả về tập trung đúng vào Điều 26 về quyền phúc khảo và khiếu nại của sinh viên.
 
 ---
 

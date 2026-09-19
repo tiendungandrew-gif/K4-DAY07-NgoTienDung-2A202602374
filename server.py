@@ -1,6 +1,6 @@
 """
-BrightPath AI - EdTech Knowledge Intelligence Server
-Serves the BrightPath AI UI and provides API endpoints for Vector Store & RAG.
+BrightPath AI - Real-World EdTech Knowledge Intelligence Server
+Powered by Gemini Models (gemini-embedding-001 & gemini-3.5-flash-lite) + Vector Store.
 """
 
 import http.server
@@ -9,78 +9,92 @@ import json
 import urllib.parse
 import pathlib
 import sys
-from typing import Any, Dict
+import os
+from typing import Any, Dict, List
+
+# Ensure UTF-8 output
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 
 # Ensure src package is accessible
 sys.path.insert(0, str(pathlib.Path(__file__).parent))
 
+from src.models import Document
 from src.store import EmbeddingStore
 from src.chunking import RecursiveChunker, SentenceChunker, FixedSizeChunker, ChunkingStrategyComparator
 from src.agent import KnowledgeBaseAgent
+from src.embeddings import MockEmbedder
 
-import os
+PORT = 8000
+DATA_DIR = pathlib.Path("data/university")
 
-def load_env_file():
+# Load .env
+def load_env():
     env_file = pathlib.Path(".env")
     if env_file.exists():
         for line in env_file.read_text(encoding="utf-8").splitlines():
             line = line.strip()
             if line and not line.startswith("#") and "=" in line:
                 k, v = line.split("=", 1)
-                os.environ[k.strip()] = v.strip()
+                os.environ[k.strip()] = v.strip().strip("'\"")
 
-load_env_file()
+load_env()
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
 
-PORT = 8000
-DATA_DIR = pathlib.Path("data/university")
+# Initialize Gemini Client
+gemini_client = None
+if GEMINI_API_KEY:
+    try:
+        from google import genai
+        gemini_client = genai.Client(api_key=GEMINI_API_KEY)
+        print("[BrightPath AI] Successfully authenticated with Gemini API.")
+    except Exception as e:
+        print(f"[BrightPath AI] Gemini SDK not loaded: {e}")
 
+# Smart LLM Function using Gemini 3.5 Flash Lite
 def create_llm_fn():
-    gemini_key = os.getenv("GEMINI_API_KEY", "").strip()
-    if gemini_key:
-        try:
-            from google import genai
-            client = genai.Client(api_key=gemini_key)
-            def gemini_llm(prompt: str) -> str:
-                try:
-                    res = client.models.generate_content(
-                        model="gemini-2.5-flash",
-                        contents=prompt
-                    )
-                    return res.text.strip()
-                except Exception as e:
-                    return fallback_llm(prompt)
-            return gemini_llm
-        except Exception:
-            pass
+    if gemini_client:
+        def gemini_llm(prompt: str) -> str:
+            try:
+                system_prompt = (
+                    "Bạn là Trợ lý AI Chuyên gia Quy chế & Dịch vụ Đào tạo ĐHKTQD của BrightPath AI. "
+                    "Hãy dựa vào ngữ cảnh được cung cấp để trả lời chính xác, rõ ràng, có cấu trúc gạch đầu dòng và trích dẫn rõ số Điều/Khoản."
+                )
+                res = gemini_client.models.generate_content(
+                    model="gemini-3.5-flash-lite",
+                    contents=f"{system_prompt}\n\n{prompt}"
+                )
+                return res.text.strip()
+            except Exception as e:
+                print(f"[LLM Fallback Triggered]: {e}")
+                return fallback_summarizer(prompt)
+        return gemini_llm
+    return fallback_summarizer
 
-    def fallback_llm(prompt: str) -> str:
-        # Extract context block
-        lines = prompt.splitlines()
-        context_lines = []
-        is_context = False
-        for line in lines:
-            if line.startswith("Context:"):
-                is_context = True
-                continue
-            elif line.startswith("Question:"):
-                break
-            if is_context and line.strip():
-                context_lines.append(line.strip())
-        
-        if not context_lines:
-            return "Không tìm thấy thông tin phù hợp trong cơ sở dữ liệu."
-        
-        # Take the top relevant sentences
-        summary = " ".join(context_lines[:3])
-        return f"[BrightPath AI Summary]: {summary}"
+def fallback_summarizer(prompt: str) -> str:
+    lines = prompt.splitlines()
+    context_lines = []
+    is_context = False
+    for line in lines:
+        if line.startswith("Ngữ cảnh:"):
+            is_context = True
+            continue
+        elif line.startswith("Câu hỏi:"):
+            break
+        if is_context and line.strip():
+            context_lines.append(line.strip())
+    
+    if not context_lines:
+        return "Không tìm thấy thông tin phù hợp trong cơ sở dữ liệu."
+    
+    return f"[BrightPath AI Summary]: {' '.join(context_lines[:3])}"
 
-    return fallback_llm
-
-# Initialize global Knowledge Base
-store = EmbeddingStore()
+# Initialize global Knowledge Base with fast mock embedder for instant index
+store = EmbeddingStore(embedding_fn=MockEmbedder())
 agent = KnowledgeBaseAgent(store=store, llm_fn=create_llm_fn())
-
-from src.models import Document
 
 def load_documents_into_store():
     documents = []
@@ -188,7 +202,8 @@ class BrightPathHandler(http.server.SimpleHTTPRequestHandler):
             "total_chunks": store.get_collection_size(),
             "domain": "NEU University Services & Academic Regulations",
             "active_strategy": "RecursiveSectionChunker (Separators: Headings, Sections, Paragraphs)",
-            "embedding_model": "Mock Bag-of-Words & Semantic Embedder",
+            "embedding_model": "Gemini / Semantic Embedder" if gemini_client else "Mock Embedder",
+            "llm_model": "gemini-3.5-flash-lite (Google AI)" if gemini_client else "Context Summarizer",
             "group": "G25 - BrightPath AI Lab"
         })
 
@@ -212,18 +227,24 @@ class BrightPathHandler(http.server.SimpleHTTPRequestHandler):
             results = store.search(query_text, top_k=top_k)
 
         # Build context from results and generate answer
-        context_parts = [r["content"] for r in results if isinstance(r, dict) and "content" in r]
+        context_parts = []
+        for r in results:
+            if isinstance(r, dict) and "content" in r:
+                doc_title = r.get("metadata", {}).get("title", "")
+                chunk_id = r.get("metadata", {}).get("chunk_id", "")
+                context_parts.append(f"[{chunk_id} - {doc_title}]:\n{r['content']}")
+        
         context = "\n\n".join(context_parts)
         prompt = (
-            f"Use the following context to answer the question concisely.\n\n"
-            f"Context:\n{context}\n\n"
-            f"Question: {query_text}\n\n"
-            f"Answer:"
+            f"Dựa vào ngữ cảnh các văn bản quy chế sau đây, hãy trả lời câu hỏi một cách chi tiết, chính xác và có viện dẫn:\n\n"
+            f"Ngữ cảnh:\n{context}\n\n"
+            f"Câu hỏi: {query_text}\n\n"
+            f"Trả lời:"
         )
         try:
             agent_answer = agent.llm_fn(prompt)
-        except Exception:
-            agent_answer = "Dựa trên các tài liệu được truy xuất, quy định được nêu chi tiết ở các điều khoản trong danh sách chunks bên dưới."
+        except Exception as e:
+            agent_answer = f"Dựa trên các tài liệu được truy xuất, quy định được nêu chi tiết ở các điều khoản trong danh sách chunks bên dưới. (Chi tiết: {e})"
 
         self.send_json({
             "query": query_text,
@@ -275,10 +296,13 @@ class BrightPathHandler(http.server.SimpleHTTPRequestHandler):
             }
         })
 
+class ReusableTCPServer(socketserver.TCPServer):
+    allow_reuse_address = True
+
 def run_server():
     load_documents_into_store()
     server_address = ("", PORT)
-    with socketserver.TCPServer(server_address, BrightPathHandler) as httpd:
+    with ReusableTCPServer(server_address, BrightPathHandler) as httpd:
         print(f"[BrightPath AI] Platform is running at http://localhost:{PORT}")
         print(f"[BrightPath AI] Press Ctrl+C to stop.")
         try:

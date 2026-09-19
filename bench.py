@@ -17,28 +17,28 @@ DATA_DIR = Path("data/university") if Path("data/university").exists() else Path
 QUERIES = [
     {
         "id": 1,
-        "query": "Chương trình Tiên tiến tại ĐH Kinh tế Quốc dân đào tạo những chuyên ngành nào?",
+        "query": "Trường tổ chức cho sinh viên đăng ký học muộn nhất bao lâu trước khi bắt đầu học kỳ?",
         "filter": None
     },
     {
         "id": 2,
-        "query": "Một tín chỉ tại Trường Đại học Kinh tế Quốc dân được quy định bằng bao nhiêu tiết học lý thuyết và bao nhiêu giờ tự học?",
+        "query": "Học cải thiện điểm được tối đa bao nhiêu tín chỉ trong học kỳ 1?",
         "filter": None
     },
     {
         "id": 3,
-        "query": "Học phần tương đương được quy định phải có nội dung giống tối thiểu bao nhiêu phần trăm so với học phần xem xét?",
-        "filter": None
+        "query": "Khi không đồng ý với điểm thi thì làm gì?",
+        "filter": {"audience": "student"}
     },
     {
         "id": 4,
-        "query": "Sinh viên chương trình Tiên tiến có điểm thang 10 dưới 4,5 thì xếp điểm chữ gì và quy đổi sang thang điểm 4 là bao nhiêu?",
+        "query": "Sinh viên được tuyển chọn vào chương trình Chất lượng cao như thế nào?",
         "filter": None
     },
     {
         "id": 5,
-        "query": "Những trường hợp nào sinh viên không được tiếp tục theo học Chương trình Tiên tiến và phải trở lại ngành cũ?",
-        "filter": {"audience": "student"}
+        "query": "Điều kiện để được xét công nhận tốt nghiệp gồm những gì?",
+        "filter": None
     }
 ]
 

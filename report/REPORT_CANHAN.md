@@ -153,16 +153,16 @@ Chạy **5 câu hỏi đánh giá của nhóm** trên mã nguồn cá nhân củ
 
 | # | Câu hỏi (Query) | Top-1 Chunk truy xuất được (tóm tắt) | Điểm Score | Có liên quan không? (Relevant) | Câu trả lời của Agent (tóm tắt) |
 |---|-----------------|--------------------------------------|------------|--------------------------------|----------------------------------|
-| 1 | Chương trình Tiên tiến tại ĐH Kinh tế Quốc dân đào tạo những chuyên ngành nào? | Điều 2: Chương trình Tiên tiến đào tạo 2 chuyên ngành Tài chính và Kế toán... | 0.284 | Có (Relevant) | Đào tạo hai chuyên ngành Tài chính và Kế toán |
-| 2 | Một tín chỉ tại Trường Đại học Kinh tế Quốc dân được quy định bằng bao nhiêu tiết học lý thuyết và bao nhiêu giờ tự học? | Điều 3: Một tín chỉ quy định bằng 15 tiết học lý thuyết, 30 giờ chuẩn bị tự học... | 0.312 | Có (Relevant) | 15 tiết lý thuyết và tối thiểu 30 giờ tự học |
-| 3 | Học phần tương đương được quy định phải có nội dung giống tối thiểu bao nhiêu phần trăm so với học phần xem xét? | Điều 3: Học phần tương đương phải có nội dung giống ít nhất 80%... | 0.245 | Có (Relevant) | Tối thiểu 80% nội dung và số tín chỉ tương đương |
-| 4 | Sinh viên chương trình Tiên tiến có điểm thang 10 dưới 4,5 thì xếp điểm chữ gì và quy đổi sang thang điểm 4 là bao nhiêu? | Điều 6: Thang điểm đánh giá, dưới 4,5 xếp loại F tương ứng 0,0... | 0.298 | Có (Relevant) | Xếp điểm chữ F, quy đổi sang thang 4 là 0,0 |
-| 5 | Những trường hợp nào sinh viên không được tiếp tục theo học Chương trình Tiên tiến và phải trở lại ngành cũ? *(Lọc: `audience: student`)* | Điều 8: Không tích lũy đủ TA năm 1, không có nguyện vọng, bị kỷ luật cảnh cáo... | 0.356 | Có (Relevant) | 3 trường hợp: nợ tiếng Anh năm 1, xin rút, hoặc bị kỷ luật cảnh cáo |
+| 1 | Trường tổ chức cho sinh viên đăng ký học muộn nhất bao lâu trước khi bắt đầu học kỳ? | Điều 22 — Đề thi kết thúc học phần, trách nhiệm giảng viên... | 0.374 | ❌ Không (Not Relevant) | "Không có thông tin về thời gian muộn nhất trường tổ chức cho sinh viên đăng ký học" — từ chối bịa |
+| 2 | Học cải thiện điểm được tối đa bao nhiêu tín chỉ trong học kỳ 1? | Điều 11 — Sinh viên chỉ được học cải thiện điểm không quá 8 tín chỉ đối với HK1... | 0.420 | ✅ Có (Relevant) | "Trong học kỳ 1, sinh viên được học cải thiện điểm tối đa không quá 8 tín chỉ" |
+| 3 | Khi không đồng ý với điểm thi thì làm gì? *(Lọc: `audience: student`)* | Điều 26 — Phúc khảo, khiếu nại điểm... | 0.438 | ✅ Có (Relevant) | Phân biệt 2 trường hợp: điểm thành phần → khiếu nại trực tiếp giảng viên; điểm thi học phần → nộp đơn Phòng Thanh tra, ĐBCLGD & Khảo thí |
+| 4 | Sinh viên được tuyển chọn vào chương trình Chất lượng cao như thế nào? | Điều 11 — Diện xét tuyển thẳng: đội tuyển Olympic quốc tế, giải nhất/nhì/ba HSG quốc gia lớp 12... | 0.379 | ✅ Có (Relevant) | Liệt kê diện xét tuyển thẳng: đội tuyển Olympic quốc tế, giải nhất/nhì/ba HSG quốc gia lớp 12 |
+| 5 | Điều kiện để được xét công nhận tốt nghiệp gồm những gì? | Điều 30 — Liệt kê 7 điều kiện a–g xét tốt nghiệp... | 0.344 | ✅ Có (Relevant) | Liệt kê đủ 7 điều kiện a–g theo Điều 30 khoản 1 |
 
-**Bao nhiêu câu hỏi trả về chunk có liên quan trong top-3?** **5** / 5
+**Bao nhiêu câu hỏi trả về chunk có liên quan trong top-3?** **4** / 5
 
 **Điều hay nhất tôi học được từ thành viên khác / nhóm khác (qua demo):**
-> Nhóm nhận thấy rằng chiến lược Recursive Chunking kết hợp với Metadata Filter (`audience: student`) mang lại độ chính xác vượt trội nhất đối với văn bản quy chế pháp lý nhiều tầng nấc. Việc giữ trọn vẹn từng Điều khoản trong một chunk giúp Agent không bao giờ bị cắt vụn các tiêu chí định lượng quan trọng.
+> Câu hỏi 1 (đăng ký học muộn nhất bao lâu) là failure case điển hình: Mock Embedder dựa trên hash từ vựng không nắm bắt được ngữ nghĩa "thời hạn đăng ký", dẫn đến top-1 lạc sang Điều 22 về đề thi. Agent đã đúng khi từ chối trả lời thay vì bịa đặt. Bài học: cần Semantic Embedding thật (Gemini/OpenAI) để cải thiện recall trên các câu hỏi cần hiểu ngữ nghĩa sâu.
 
 ---
 
