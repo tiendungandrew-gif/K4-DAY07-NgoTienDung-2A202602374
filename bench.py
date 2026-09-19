@@ -62,7 +62,7 @@ def run_benchmark():
     
     # 2. Load and Chunk files
     all_chunk_docs = []
-    md_files = sorted([p for p in DATA_DIR.glob("*.md") if p.name.startswith("doc_")])
+    md_files = sorted([p for p in DATA_DIR.glob("*.md")])
     
     for path in md_files:
         fm, body = parse_md_file(path)

@@ -1,5 +1,5 @@
----
-doc_id: doc_8
+﻿---
+doc_id: thong-tu-08-2021-bgddt
 title: Thông tư 08/2021/TT-BGDĐT - Quy chế đào tạo trình độ đại học
 source_url: https://daotao.neu.edu.vn/Resources/Docs/SubDomain/daotao/SongNganh/thong-tu-08-2021-tt-bgddt-quy-che-dao-tao-trinh-do-dai-hoc.pdf
 retrieved_at: 2024-11-20

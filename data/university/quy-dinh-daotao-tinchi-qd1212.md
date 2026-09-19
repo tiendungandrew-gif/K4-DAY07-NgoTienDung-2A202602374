@@ -1,5 +1,5 @@
----
-doc_id: doc_3
+﻿---
+doc_id: quy-dinh-daotao-tinchi-qd1212
 title: Quy định đào tạo ĐH chính quy theo hệ thống tín chỉ tại ĐHKTQD
 source_url: https://daotao.neu.edu.vn/vi/quy-dinh-cua-truong/quy-dinh-dao-tao-dai-hoc-he-chinh-quy-theo-he-thong-tin-chi-tai-truong-dai-hoc-kinh-te-quoc-dan-2
 retrieved_at: 2024-11-20
