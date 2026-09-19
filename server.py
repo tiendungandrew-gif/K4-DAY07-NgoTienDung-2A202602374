@@ -100,7 +100,7 @@ def load_documents_into_store():
     documents = []
     chunker = RecursiveChunker(chunk_size=500, separators=["\n\n### ", "\n\n## ", "\n\n", "\n", ". ", " "])
     
-    for doc_path in sorted(DATA_DIR.glob("doc_*.md")):
+    for doc_path in sorted(DATA_DIR.glob("*.md")):
         raw = doc_path.read_text(encoding="utf-8")
         metadata = {}
         content = raw
@@ -126,7 +126,7 @@ def load_documents_into_store():
             ))
             
     store.add_documents(documents)
-    print(f"[BrightPath AI] Loaded {len(documents)} chunks from {len(list(DATA_DIR.glob('doc_*.md')))} documents.")
+    print(f"[BrightPath AI] Loaded {len(documents)} chunks from {len(list(DATA_DIR.glob('*.md')))} documents.")
 
 class BrightPathHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -170,7 +170,7 @@ class BrightPathHandler(http.server.SimpleHTTPRequestHandler):
 
     def handle_get_documents(self):
         docs_summary = []
-        for doc_path in sorted(DATA_DIR.glob("doc_*.md")):
+        for doc_path in sorted(DATA_DIR.glob("*.md")):
             raw = doc_path.read_text(encoding="utf-8")
             metadata = {}
             content = raw
@@ -198,7 +198,7 @@ class BrightPathHandler(http.server.SimpleHTTPRequestHandler):
 
     def handle_get_stats(self):
         self.send_json({
-            "total_documents": len(list(DATA_DIR.glob("doc_*.md"))),
+            "total_documents": len(list(DATA_DIR.glob("*.md"))),
             "total_chunks": store.get_collection_size(),
             "domain": "NEU University Services & Academic Regulations",
             "active_strategy": "RecursiveSectionChunker (Separators: Headings, Sections, Paragraphs)",
