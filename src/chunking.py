@@ -139,6 +139,47 @@ class RecursiveChunker:
             return self._split(current_text, next_seps)
 
 
+class HeadingSectionChunker:
+    """Chunk theo tiêu đề Markdown / Điều khoản, rồi đệ quy nếu mục quá dài.
+
+    Khi phải cắt nhỏ một mục, gắn lại dòng tiêu đề vào từng mảnh con
+    để không mất ngữ cảnh 'đây là Điều nào'.
+    """
+
+    _SPLIT_RE = re.compile(
+        r"(?=^(?:#{1,6}\s+|#{0,3}\s*\**Điều\s+\d+))",
+        flags=re.M | re.I,
+    )
+
+    def __init__(self, chunk_size: int = 900) -> None:
+        self.chunk_size = chunk_size
+        self._fallback = RecursiveChunker(
+            separators=["\n\n### ", "\n\n## ", "\n\n", "\n", ". ", " "],
+            chunk_size=chunk_size,
+        )
+
+    def chunk(self, text: str) -> list[str]:
+        if not text or not text.strip():
+            return []
+
+        parts = [p.strip() for p in self._SPLIT_RE.split(text) if p.strip()]
+        if len(parts) <= 1:
+            parts = self._fallback.chunk(text)
+
+        chunks: list[str] = []
+        for part in parts:
+            heading = part.splitlines()[0].strip() if part.splitlines() else ""
+            if len(part) <= self.chunk_size:
+                chunks.append(part)
+                continue
+            for sub in self._fallback.chunk(part):
+                if heading and not sub.lstrip().startswith(heading[:24]):
+                    chunks.append(f"{heading}\n{sub}")
+                else:
+                    chunks.append(sub)
+        return chunks
+
+
 def _dot(a: list[float], b: list[float]) -> float:
     return sum(x * y for x, y in zip(a, b))
 

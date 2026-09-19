@@ -166,6 +166,12 @@ Chạy **5 câu hỏi đánh giá của nhóm** trên mã nguồn cá nhân củ
 
 ---
 
+## 6. Kết Luận / Điểm chốt cá nhân
+
+Qua Lab 7 này, bài học quan trọng nhất rút ra là hiệu quả của một hệ thống RAG không chỉ nằm ở việc sử dụng mô hình mạnh, mà phụ thuộc rất lớn vào **chiến lược tiền xử lý dữ liệu (Chunking)** và **chất lượng của vector embedding**. Mock Embedding tuy nhẹ và nhanh nhưng bộc lộ rõ yếu điểm khi gặp các câu hỏi cần hiểu ngữ nghĩa thay vì chỉ khớp từ khóa (keyword matching). Bằng việc tự xây dựng các thành phần cốt lõi của Vector Store và linh hoạt ứng dụng `RecursiveChunker` để bảo toàn cấu trúc văn bản pháp lý, tôi đã nắm vững được nguyên lý hoạt động bên dưới của các hệ thống tra cứu thông minh, tạo tiền đề vững chắc cho việc phát triển các ứng dụng AI tạo sinh có độ tin cậy cao sau này.
+
+---
+
 ## Tự Đánh Giá (Phần Cá Nhân)
 
 | Tiêu chí | Điểm tự đánh giá |
